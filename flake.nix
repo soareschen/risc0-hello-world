@@ -20,17 +20,31 @@
       "x86_64-linux"
     ]
     (system: let
-      nixpkgs = import inputs.nixpkgs {
-        inherit system;
-        overlays = [
-          inputs.rust-overlay.overlays.default
-        ];
-      };
+        nixpkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = [
+                inputs.rust-overlay.overlays.default
+            ];
+        };
 
-      hello-guest = nixpkgs.rustPlatform.buildRustPackage
-      ;
+        rust-bin = nixpkgs.rust-bin.stable.latest.default;
+
+        hello-guest = nixpkgs.rustPlatform.buildRustPackage {
+            name = "hello-guest";
+
+            src = ./.;
+
+            buildAndTestSubdir = "guest";
+
+            cargoSha256 = "sha256-ETTJ7DmpxxRcs5CeEpuqVd0gu9Hf9vzXZC9Hn0g79YE=";
+
+            nativeBuildInputs = [
+                rust-bin
+            ];
+        };
     in {
       packages = {
+        inherit hello-guest;
       };
     });
 }
