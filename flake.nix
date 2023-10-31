@@ -37,16 +37,8 @@
 
             nativeBuildInputs = [
                 rust-bin
-                nixpkgs.gcc
-                nixpkgs.rustup
-                nixpkgs.glibc
                 nixpkgs.zlib
-                nixpkgs.bash
                 nixpkgs.autoPatchelfHook
-            ];
-
-            LD_LIBRARY_PATH = nixpkgs.lib.strings.makeLibraryPath [
-                nixpkgs.zlib
             ];
 
             dontBuild = true;
