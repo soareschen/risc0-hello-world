@@ -37,7 +37,6 @@
 
             nativeBuildInputs = [
                 rust-bin
-                nixpkgs.pkg-config
                 nixpkgs.gcc
                 nixpkgs.rustup
                 nixpkgs.glibc
@@ -68,15 +67,11 @@
 
             buildAndTestSubdir = "guest";
 
-            cargoSha256 = "sha256-dDpLBqRqQ/wZSkIt2T/pTci7GGoSn3pO2FnIfhCB1HQ=";
+            cargoSha256 = "sha256-VFABeUFCQ5nxAoHIv9zVqh1h+kXLdu/ymUTtmqh9niw=";
 
             nativeBuildInputs = [
                 rust-bin
-                nixpkgs.which
-                nixpkgs.gcc
-                nixpkgs.glibc
                 nixpkgs.lld
-                nixpkgs.llvm
             ];
 
             doCheck = false;
@@ -84,12 +79,12 @@
             buildPhase = ''
                 RUSTC=${risc0-rust}/bin/rustc \
                     CARGO_ENCODED_RUSTFLAGS=$'-C\x1fpasses=loweratomic\x1f-C\x1flink-arg=-Ttext=0x00200800\x1f-C\x1flink-arg=--fatal-warnings\x1f-C\x1fpanic=abort\x1f-C\x1flinker=lld' \
-                    cargo build --release --target riscv32im-risc0-zkvm-elf -p multiply
+                    cargo build --release --target riscv32im-risc0-zkvm-elf -p risc0-guest
             '';
 
             installPhase = ''
                 mkdir -p $out
-                cp target/riscv32im-risc0-zkvm-elf/release/multiply $out/
+                cp target/riscv32im-risc0-zkvm-elf/release/risc0-guest $out/
             '';
         };
     in {

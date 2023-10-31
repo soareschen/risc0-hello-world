@@ -43,15 +43,12 @@ pub fn multiply(program: &[u8], a: u64, b: u64) -> (Receipt, u64) {
 }
 
 fn main() {
-    let (program, digest) = load_zk_program("./result/multiply");
+    let (program, digest) = load_zk_program("./result/risc0-guest");
 
     let (receipt, result) = multiply(&program, 17, 23);
 
     assert_eq!(17 * 23, result);
 
-    // Here is where one would send 'receipt' over the network...
-
-    // Verify receipt, panic if it's wrong
     receipt.verify(digest).expect(
         "Code you have proven should successfully verify; did you specify the correct image ID?",
     );
