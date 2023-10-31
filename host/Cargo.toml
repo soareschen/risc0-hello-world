@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# hello-world-methods = { path = "../methods" }
 risc0-zkvm = { version = "0.18.0" }
 risc0-zkvm-platform = { version = "0.18.0" }
 risc0-binfmt = { version = "0.18.0" }

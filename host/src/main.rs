@@ -43,7 +43,7 @@ pub fn multiply(program: &[u8], a: u64, b: u64) -> (Receipt, u64) {
 }
 
 fn main() {
-    let (program, digest) = load_zk_program("./out/multiply");
+    let (program, digest) = load_zk_program("./out");
 
     let (receipt, result) = multiply(&program, 17, 23);
 
