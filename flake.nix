@@ -6,10 +6,6 @@
     flake-utils.url = github:numtide/flake-utils;
     rust-overlay.url = github:oxalica/rust-overlay;
 
-    risc0-rust = {
-      url = "https://github.com/risc0/rust/releases/download/test-release-2/rust-toolchain-x86_64-unknown-linux-gnu.tar.gz";
-      flake = false;
-    };
   };
 
   outputs = inputs: let
@@ -27,7 +23,43 @@
             ];
         };
 
-        rust-bin = nixpkgs.rust-bin.stable.latest.default;
+        rust-bin = nixpkgs.rust-bin.stable.latest.complete;
+
+        risc0-rust-tarball = builtins.fetchurl {
+          url = "https://github.com/risc0/rust/releases/download/test-release-2/rust-toolchain-x86_64-unknown-linux-gnu.tar.gz";
+          sha256 = "sha256:1nqgpx6ww0rla5c4jzam6fr43v6lf0flsj572racjqwq9xk86l4a";
+        };
+
+        risc0-rust = nixpkgs.stdenv.mkDerivation {
+            name = "risc0-rust";
+
+            unpackPhase = "true";
+
+            nativeBuildInputs = [
+                rust-bin
+                nixpkgs.pkg-config
+                nixpkgs.gcc
+                nixpkgs.rustup
+                nixpkgs.glibc
+                nixpkgs.zlib
+                nixpkgs.bash
+                nixpkgs.autoPatchelfHook
+            ];
+
+            LD_LIBRARY_PATH = nixpkgs.lib.strings.makeLibraryPath [
+                nixpkgs.zlib
+            ];
+
+            dontBuild = true;
+
+            installPhase = ''
+                mkdir -p $out
+                cd $out
+                tar xzf ${risc0-rust-tarball}
+                chmod +x bin/*
+                runHook postInstall
+            '';
+        };
 
         hello-guest = nixpkgs.rustPlatform.buildRustPackage {
             name = "hello-guest";
@@ -36,15 +68,33 @@
 
             buildAndTestSubdir = "guest";
 
-            cargoSha256 = "sha256-ETTJ7DmpxxRcs5CeEpuqVd0gu9Hf9vzXZC9Hn0g79YE=";
+            cargoSha256 = "sha256-dDpLBqRqQ/wZSkIt2T/pTci7GGoSn3pO2FnIfhCB1HQ=";
 
             nativeBuildInputs = [
                 rust-bin
+                nixpkgs.which
+                nixpkgs.gcc
+                nixpkgs.glibc
+                nixpkgs.lld
+                nixpkgs.llvm
             ];
+
+            doCheck = false;
+
+            buildPhase = ''
+                RUSTC=${risc0-rust}/bin/rustc \
+                    CARGO_ENCODED_RUSTFLAGS=$'-C\x1fpasses=loweratomic\x1f-C\x1flink-arg=-Ttext=0x00200800\x1f-C\x1flink-arg=--fatal-warnings\x1f-C\x1fpanic=abort\x1f-C\x1flinker=lld' \
+                    cargo build --release --target riscv32im-risc0-zkvm-elf -p multiply
+            '';
+
+            installPhase = ''
+                mkdir -p $out
+                cp target/riscv32im-risc0-zkvm-elf/release/multiply $out/
+            '';
         };
     in {
       packages = {
-        inherit hello-guest;
+        inherit risc0-rust hello-guest;
       };
     });
 }
